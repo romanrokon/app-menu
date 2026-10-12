@@ -147,13 +147,30 @@ a { text-decoration: none; }
   transform: none;
   visibility: visible;
   transition:
-    opacity 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
     visibility 0s;
+}
+
+/*
+ * @ AI Context: The open is two layers. The panel itself is quick (200ms) so it lands under
+ * the finger; its contents then rise into it over 520ms, staggered top to bottom by --i, so
+ * the motion reads as flowing from the container into what it holds. The item animation is
+ * keyed to [data-open], so removing the attribute on close resets it and every open replays
+ * it. Closing is a plain fast fade; nobody waits on a dismissal.
+ */
+.panel[data-open] .item {
+  animation: rz-rise 520ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: calc(70ms + var(--i, 0) * 28ms);
+}
+
+@keyframes rz-rise {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); filter: blur(2px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .panel, .panel[data-open] { transform: none; transition: none; }
+  .panel[data-open] .item { animation: none; }
 }
 
 .panel:focus { outline: none; }
@@ -454,8 +471,12 @@ class RzAppMenu extends HTMLElement {
     const owner = data.owner ?? {};
     const year = new Date().getFullYear();
 
+    // Grid rows animate as rows, so a row of three tiles lands together.
+    const productsStart = 1 + Math.ceil(others.length / 3);
+    const footerIndex = productsStart + 1 + products.length;
+
     const hostRow = host
-      ? `<a class="host" href="${link(host.url)}">
+      ? `<a class="host item" style="--i:0" href="${link(host.url)}">
           <img src="${escapeHtml(asset(host.icon))}" alt="" width="44" height="44">
           <span class="host-text">
             <span class="host-name">${escapeHtml(host.name)}</span>
@@ -466,7 +487,7 @@ class RzAppMenu extends HTMLElement {
 
     const tiles = others
       .map(
-        (app) => `<li><a class="tile" href="${link(app.url)}" title="${escapeHtml(app.subtitle)}">
+        (app, index) => `<li class="item" style="--i:${1 + Math.floor(index / 3)}"><a class="tile" href="${link(app.url)}" title="${escapeHtml(app.subtitle)}">
           <img src="${escapeHtml(asset(app.icon))}" alt="" width="48" height="48" loading="lazy">
           <span class="tile-name">${escapeHtml(app.name)}</span>
         </a></li>`,
@@ -475,7 +496,7 @@ class RzAppMenu extends HTMLElement {
 
     const productRows = products
       .map(
-        (app) => `<li><a class="row" href="${link(app.url)}">
+        (app, index) => `<li class="item" style="--i:${productsStart + 1 + index}"><a class="row" href="${link(app.url)}">
           <img src="${escapeHtml(asset(app.icon))}" alt="" width="36" height="36" loading="lazy">
           <span class="row-text">
             <span class="row-name">${escapeHtml(app.name)}</span>
@@ -495,11 +516,11 @@ class RzAppMenu extends HTMLElement {
       ${tiles ? `<ul class="grid">${tiles}</ul>` : ""}
       ${
         productRows
-          ? `<p class="section-label" id="products-label">${escapeHtml(data.productsLabel ?? "More")}</p>
+          ? `<p class="section-label item" style="--i:${productsStart}" id="products-label">${escapeHtml(data.productsLabel ?? "More")}</p>
              <ul class="products" aria-labelledby="products-label">${productRows}</ul>`
           : ""
       }
-      <div class="footer">
+      <div class="footer item" style="--i:${footerIndex}">
         ${links}
         <a href="${link(owner.url ?? "#")}">© ${year} ${escapeHtml(owner.name ?? "")}</a>
       </div>`;

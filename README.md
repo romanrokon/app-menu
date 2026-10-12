@@ -16,6 +16,10 @@ dependencies and no build step. Served from https://apps.rzamann.com.
 | `theme` | `dark` or `light`. Omit it to follow `prefers-color-scheme`. |
 | `registry` | Another `apps.json` url, for local work. Defaults to the one next to the script. |
 
+An app with a single theme pins it: StarWalls is dark-only and sets `theme="dark"`, so the
+panel stays dark even on a phone set to light mode. An app with both themes omits the
+attribute, or sets it from its own theme toggle.
+
 The trigger takes its colour from the host (`currentColor`), and `::part(trigger)` /
 `::part(panel)` allow further overrides.
 
