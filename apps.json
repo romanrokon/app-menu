@@ -1,5 +1,8 @@
 {
-  "owner": { "name": "rzamann", "url": "https://rzamann.com" },
+  "owner": {
+    "name": "rzamann",
+    "url": "https://rzamann.com"
+  },
   "apps": [
     {
       "id": "starwalls",
@@ -8,9 +11,18 @@
       "url": "https://starwalls.rzamann.com",
       "icon": "icons/starwalls.png",
       "links": [
-        { "label": "About", "url": "https://starwalls.rzamann.com/about" },
-        { "label": "Terms", "url": "https://starwalls.rzamann.com/tos" },
-        { "label": "Privacy", "url": "https://starwalls.rzamann.com/privacy" }
+        {
+          "label": "About",
+          "url": "https://starwalls.rzamann.com/about"
+        },
+        {
+          "label": "Terms",
+          "url": "https://starwalls.rzamann.com/tos"
+        },
+        {
+          "label": "Privacy",
+          "url": "https://starwalls.rzamann.com/privacy"
+        }
       ]
     },
     {
@@ -18,7 +30,21 @@
       "name": "VdoCard",
       "subtitle": "Animated greeting cards in 30 seconds",
       "url": "https://vdocard.rzamann.com",
-      "icon": "icons/vdocard.png"
+      "icon": "icons/vdocard.png",
+      "links": [
+        {
+          "label": "About",
+          "url": "https://vdocard.rzamann.com/about"
+        },
+        {
+          "label": "Terms",
+          "url": "https://vdocard.rzamann.com/terms"
+        },
+        {
+          "label": "Privacy",
+          "url": "https://vdocard.rzamann.com/privacy"
+        }
+      ]
     },
     {
       "id": "301st",
