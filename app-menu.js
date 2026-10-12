@@ -19,6 +19,8 @@ const TAG = "rz-app-menu";
 
 const PANEL_WIDTH = 328;
 const GUTTER = 8;
+const PANEL_OFFSET = 8;
+const CLOSE_MS = 120;
 
 const registries = new Map();
 
@@ -118,9 +120,9 @@ a { text-decoration: none; }
 }
 
 .panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
+  position: fixed;
+  inset: auto;
+  margin: 0;
   z-index: 2147483000;
   width: 328px;
   max-height: min(640px, calc(100dvh - 88px));
@@ -344,6 +346,7 @@ class RzAppMenu extends HTMLElement {
   #panel;
   #open = false;
   #rendered = false;
+  #hideTimer;
 
   constructor() {
     super();
@@ -352,7 +355,8 @@ class RzAppMenu extends HTMLElement {
       <style>${STYLES}</style>
       <button class="trigger" part="trigger" type="button" aria-label="Apps"
         aria-haspopup="dialog" aria-expanded="false" aria-controls="panel">${ICON_GRID}</button>
-      <div class="panel" id="panel" part="panel" role="dialog" aria-label="Apps" tabindex="-1"></div>
+      <div class="panel" id="panel" part="panel" role="dialog" aria-label="Apps" tabindex="-1"
+        popover="manual"></div>
     `;
     this.#trigger = this.#root.querySelector(".trigger");
     this.#panel = this.#root.querySelector(".panel");
@@ -376,6 +380,8 @@ class RzAppMenu extends HTMLElement {
   disconnectedCallback() {
     document.removeEventListener("pointerdown", this.#onOutside, true);
     window.removeEventListener("resize", this.#onResize);
+    window.removeEventListener("scroll", this.#onResize, { capture: true });
+    clearTimeout(this.#hideTimer);
   }
 
   attributeChangedCallback() {
@@ -384,6 +390,15 @@ class RzAppMenu extends HTMLElement {
     if (this.#open) this.#render();
   }
 
+  /**
+   * @ AI Context: The panel lives in the browser's top layer (popover="manual") so no host
+   * header can trap it. VdoCard's header sat below its preview card on a phone, and a z-index
+   * inside the shadow root can't beat an ancestor's stacking context. A hidden popover is
+   * display:none, so opening shows it first and sets data-open a frame later to let the
+   * transition run; closing removes data-open, then hides it after the 120ms fade. Manual
+   * mode keeps dismissal in our hands (Escape, outside pointerdown). Browsers without the
+   * Popover API ignore the attribute and get the same fixed panel at a high z-index.
+   */
   toggle(force) {
     const open = force ?? !this.#open;
 
@@ -391,14 +406,36 @@ class RzAppMenu extends HTMLElement {
 
     this.#open = open;
     this.#trigger.setAttribute("aria-expanded", String(open));
-    this.#panel.toggleAttribute("data-open", open);
+    clearTimeout(this.#hideTimer);
 
     if (open) {
+      this.#showPopover();
       this.#place();
+      this.#panel.getBoundingClientRect();
+      this.#panel.toggleAttribute("data-open", true);
 
       if (!this.#rendered) this.#render();
 
       this.#panel.focus({ preventScroll: true });
+      window.addEventListener("scroll", this.#onResize, { capture: true, passive: true });
+
+      return;
+    }
+
+    this.#panel.toggleAttribute("data-open", false);
+    window.removeEventListener("scroll", this.#onResize, { capture: true });
+    this.#hideTimer = setTimeout(() => this.#hidePopover(), CLOSE_MS);
+  }
+
+  #showPopover() {
+    if (this.#panel.showPopover && !this.#panel.matches(":popover-open")) {
+      this.#panel.showPopover();
+    }
+  }
+
+  #hidePopover() {
+    if (this.#panel.hidePopover && this.#panel.matches(":popover-open")) {
+      this.#panel.hidePopover();
     }
   }
 
@@ -424,7 +461,8 @@ class RzAppMenu extends HTMLElement {
     );
 
     this.#panel.style.width = `${width}px`;
-    this.#panel.style.left = `${left - anchor.left}px`;
+    this.#panel.style.left = `${left}px`;
+    this.#panel.style.top = `${anchor.bottom + PANEL_OFFSET}px`;
   }
 
   #onResize = () => {
