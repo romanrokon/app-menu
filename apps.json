@@ -1,0 +1,69 @@
+{
+  "owner": { "name": "rzamann", "url": "https://rzamann.com" },
+  "apps": [
+    {
+      "id": "starwalls",
+      "name": "StarWalls",
+      "subtitle": "NASA space photos as wallpapers",
+      "url": "https://starwalls.rzamann.com",
+      "icon": "icons/starwalls.png",
+      "links": [
+        { "label": "About", "url": "https://starwalls.rzamann.com/about" },
+        { "label": "Terms", "url": "https://starwalls.rzamann.com/tos" },
+        { "label": "Privacy", "url": "https://starwalls.rzamann.com/privacy" }
+      ]
+    },
+    {
+      "id": "vdocard",
+      "name": "VdoCard",
+      "subtitle": "Animated greeting cards in 30 seconds",
+      "url": "https://vdocard.rzamann.com",
+      "icon": "icons/vdocard.png"
+    },
+    {
+      "id": "301st",
+      "name": "301st.xyz",
+      "subtitle": "3D countdowns for any date",
+      "url": "https://301st.vercel.app",
+      "icon": "icons/301st.png"
+    },
+    {
+      "id": "eyehack",
+      "name": "EyeHack",
+      "subtitle": "20-20-20 eye breaks from the Mac menu bar",
+      "url": "https://github.com/romanrokon/eyehack/releases/latest",
+      "icon": "icons/eyehack.png"
+    },
+    {
+      "id": "unifonts",
+      "name": "UniFonts",
+      "subtitle": "Unicode font styles you can paste anywhere",
+      "url": "https://unifonts.vercel.app",
+      "icon": "icons/unifonts.png"
+    },
+    {
+      "id": "pixearch",
+      "name": "Pixearch",
+      "subtitle": "Search free Pixabay photos",
+      "url": "https://pixearch.netlify.app",
+      "icon": "icons/pixearch.png"
+    }
+  ],
+  "products": [
+    {
+      "id": "say4real",
+      "name": "say4real",
+      "subtitle": "Link-in-bio with an anonymous inbox",
+      "url": "https://say4real.com",
+      "icon": "icons/say4real.png"
+    },
+    {
+      "id": "ovikkha",
+      "name": "Ovikkha.app",
+      "subtitle": "Question papers for Bangladeshi teachers",
+      "url": "https://ovikkha.app",
+      "icon": "icons/ovikkha.png"
+    }
+  ],
+  "productsLabel": "More from Rokiron"
+}

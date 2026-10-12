@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>App menu</title>
+  <script type="module" src="./app-menu.js"></script>
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; }
+    header { display: flex; align-items: center; justify-content: space-between; height: 56px; padding: 0 16px; }
+    .dark { background: #000; color: #fff; }
+    .light { background: #fff; color: #16181d; border-bottom: 1px solid #e2e4e9; }
+    .slot { display: flex; gap: 8px; align-items: center; }
+  </style>
+</head>
+<body>
+  <header class="dark">
+    <strong>StarWalls host, dark</strong>
+    <div class="slot"><rz-app-menu app="starwalls" theme="dark"></rz-app-menu></div>
+  </header>
+  <header class="light">
+    <strong>VdoCard host, light</strong>
+    <div class="slot"><rz-app-menu app="vdocard" theme="light"></rz-app-menu></div>
+  </header>
+</body>
+</html>
