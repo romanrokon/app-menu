@@ -51,6 +51,18 @@ const ICON_ARROW = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden=
   <path d="M7 17 17 7M8 7h9v9"/>
 </svg>`;
 
+const ICON_SHARE = `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none"
+  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 15V3M7 8l5-5 5 5M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>
+</svg>`;
+
+const ICON_CHECK = `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none"
+  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M5 12.5 10 17.5 19 7"/>
+</svg>`;
+
+const COPIED_MS = 1600;
+
 const STYLES = `
 :host {
   --rz-surface: #17181c;
@@ -180,11 +192,42 @@ a { text-decoration: none; }
 .host {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
+  gap: 4px;
+  padding-right: 8px;
   border-radius: 14px;
   background: var(--rz-raised);
 }
+
+.host-link {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  border-radius: 14px;
+}
+
+.share {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: var(--rz-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.share:hover {
+  color: var(--rz-text);
+  background: color-mix(in srgb, var(--rz-text) 10%, transparent);
+}
+
+.share[data-copied] { color: var(--rz-text); }
 
 .host img { width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0; }
 
@@ -347,6 +390,8 @@ class RzAppMenu extends HTMLElement {
   #open = false;
   #rendered = false;
   #hideTimer;
+  #copiedTimer;
+  #host;
 
   constructor() {
     super();
@@ -364,6 +409,10 @@ class RzAppMenu extends HTMLElement {
     this.#panel.addEventListener("keydown", (event) => this.#onKeydown(event));
     this.#panel.addEventListener("click", (event) => {
       if (event.target.closest(".retry")) this.#render();
+
+      const share = event.target.closest(".share");
+
+      if (share) this.#share(share);
     });
   }
 
@@ -382,6 +431,7 @@ class RzAppMenu extends HTMLElement {
     window.removeEventListener("resize", this.#onResize);
     window.removeEventListener("scroll", this.#onResize, { capture: true });
     clearTimeout(this.#hideTimer);
+    clearTimeout(this.#copiedTimer);
   }
 
   attributeChangedCallback() {
@@ -437,6 +487,47 @@ class RzAppMenu extends HTMLElement {
     if (this.#panel.hidePopover && this.#panel.matches(":popover-open")) {
       this.#panel.hidePopover();
     }
+  }
+
+  /**
+   * @ AI Context: Shares the host app's home URL from apps.json, so a share from any page of
+   * the app sends people to its front door. navigator.share opens the OS sheet on phones and
+   * on Safari/Chrome desktop; a dismissed sheet rejects with AbortError, which is ignored.
+   * Where the API is missing (Firefox desktop), the link is copied and the icon turns into a
+   * check for COPIED_MS so the tap still does something visible.
+   */
+  async #share(button) {
+    const host = this.#host;
+
+    if (!host) return;
+
+    const payload = { title: host.name, text: host.subtitle, url: host.url };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(payload);
+      } catch {
+        // Dismissed sheet or blocked share; nothing to report.
+      }
+
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(host.url);
+    } catch {
+      return;
+    }
+
+    button.innerHTML = ICON_CHECK;
+    button.setAttribute("data-copied", "");
+    button.setAttribute("aria-label", "Link copied");
+    clearTimeout(this.#copiedTimer);
+    this.#copiedTimer = setTimeout(() => {
+      button.innerHTML = ICON_SHARE;
+      button.removeAttribute("data-copied");
+      button.setAttribute("aria-label", `Share ${host.name}`);
+    }, COPIED_MS);
   }
 
   #registryUrl() {
@@ -513,14 +604,20 @@ class RzAppMenu extends HTMLElement {
     const productsStart = 1 + Math.ceil(others.length / 3);
     const footerIndex = productsStart + 1 + products.length;
 
+    this.#host = host && { ...host, url: safeUrl(host.url, registryUrl) };
+
     const hostRow = host
-      ? `<a class="host item" style="--i:0" href="${link(host.url)}">
-          <img src="${escapeHtml(asset(host.icon))}" alt="" width="44" height="44">
-          <span class="host-text">
-            <span class="host-name">${escapeHtml(host.name)}</span>
-            <span class="host-subtitle">${escapeHtml(host.subtitle)}</span>
-          </span>
-        </a>`
+      ? `<div class="host item" style="--i:0">
+          <a class="host-link" href="${link(host.url)}">
+            <img src="${escapeHtml(asset(host.icon))}" alt="" width="44" height="44">
+            <span class="host-text">
+              <span class="host-name">${escapeHtml(host.name)}</span>
+              <span class="host-subtitle">${escapeHtml(host.subtitle)}</span>
+            </span>
+          </a>
+          <button class="share" type="button" aria-label="Share ${escapeHtml(host.name)}"
+            title="Share">${ICON_SHARE}</button>
+        </div>`
       : "";
 
     const tiles = others
