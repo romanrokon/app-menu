@@ -179,7 +179,7 @@ a { text-decoration: none; }
 }
 
 @keyframes rz-rise {
-  from { opacity: 0; transform: translateY(10px) scale(0.98); filter: blur(2px); }
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
 }
 
 @media (prefers-reduced-motion: reduce) {
