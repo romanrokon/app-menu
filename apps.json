@@ -54,6 +54,13 @@
       "icon": "icons/301st.png"
     },
     {
+      "id": "pyrostars",
+      "name": "PyroStars",
+      "subtitle": "Tap the fireworks before they fade",
+      "url": "https://301st.vercel.app/game",
+      "icon": "icons/pyrostars.png"
+    },
+    {
       "id": "eyehack",
       "name": "EyeHack",
       "subtitle": "20-20-20 eye breaks from the Mac menu bar",
