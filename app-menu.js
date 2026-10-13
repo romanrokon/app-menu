@@ -20,6 +20,9 @@ const TAG = "rz-app-menu";
 const PANEL_WIDTH = 328;
 const GUTTER = 8;
 const PANEL_OFFSET = 8;
+const GRID_COLUMNS = 3;
+const GRID_ROWS = 2;
+const PAGE_SIZE = GRID_COLUMNS * GRID_ROWS;
 const CLOSE_MS = 120;
 
 const registries = new Map();
@@ -244,12 +247,37 @@ a { text-decoration: none; }
 
 .host-text { min-width: 0; }
 
+/*
+ * @ AI Context: The grid is two rows of three. Past six apps it pages sideways, like a phone
+ * home screen, so the two rows stay and reading order holds within each page; a column-major
+ * grid would put app 2 under app 1. Pages snap. With more than one page each page is 28px
+ * narrower so the next page's first column peeks in as the cue that it scrolls. Touch hides
+ * the scrollbar; mouse users get a thin one to drag, since a vertical wheel scrolls the panel.
+ */
+.pager {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.pager[data-paged] .grid { flex-basis: calc(100% - 28px); }
+
+@media (hover: hover) {
+  .pager[data-paged] { padding-bottom: 6px; scrollbar-width: thin; }
+}
+
 .grid {
   display: grid;
+  flex: 0 0 100%;
   grid-template-columns: repeat(3, 1fr);
+  align-content: start;
   gap: 2px;
-  margin-top: 8px;
   list-style: none;
+  scroll-snap-align: start;
 }
 
 .tile {
@@ -601,7 +629,7 @@ class RzAppMenu extends HTMLElement {
     const year = new Date().getFullYear();
 
     // Grid rows animate as rows, so a row of three tiles lands together.
-    const productsStart = 1 + Math.ceil(others.length / 3);
+    const productsStart = 1 + Math.min(GRID_ROWS, Math.ceil(others.length / GRID_COLUMNS));
     const footerIndex = productsStart + 1 + products.length;
 
     this.#host = host && { ...host, url: safeUrl(host.url, registryUrl) };
@@ -620,14 +648,21 @@ class RzAppMenu extends HTMLElement {
         </div>`
       : "";
 
-    const tiles = others
-      .map(
-        (app, index) => `<li class="item" style="--i:${1 + Math.floor(index / 3)}"><a class="tile" href="${link(app.url)}" title="${escapeHtml(app.subtitle)}">
+    const tile = (app, index) => {
+      const row = Math.floor((index % PAGE_SIZE) / GRID_COLUMNS);
+
+      return `<li class="item" style="--i:${1 + row}"><a class="tile" href="${link(app.url)}" title="${escapeHtml(app.subtitle)}">
           <img src="${escapeHtml(asset(app.icon))}" alt="" width="48" height="48" loading="lazy">
           <span class="tile-name">${escapeHtml(app.name)}</span>
-        </a></li>`,
-      )
-      .join("");
+        </a></li>`;
+    };
+
+    const pages = [];
+
+    for (let start = 0; start < others.length; start += PAGE_SIZE) {
+      const page = others.slice(start, start + PAGE_SIZE);
+      pages.push(`<ul class="grid">${page.map((app, i) => tile(app, start + i)).join("")}</ul>`);
+    }
 
     const productRows = products
       .map(
@@ -648,7 +683,7 @@ class RzAppMenu extends HTMLElement {
 
     this.#panel.innerHTML = `
       ${hostRow}
-      ${tiles ? `<ul class="grid">${tiles}</ul>` : ""}
+      ${pages.length ? `<div class="pager"${pages.length > 1 ? " data-paged" : ""}>${pages.join("")}</div>` : ""}
       ${
         productRows
           ? `<p class="section-label item" style="--i:${productsStart}" id="products-label">${escapeHtml(data.productsLabel ?? "More")}</p>
